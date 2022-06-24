@@ -15,4 +15,7 @@ source /global/common/software/dasrepo/wence/mambaforge/etc/profile.d/conda.sh
 source /global/common/software/dasrepo/wence/mambaforge/etc/profile.d/mamba.sh
 mamba activate dask-cuda
 
+echo "PATH=${PATH}"
+echo "PROTOCOL=${PROTOCOL}"
+echo "SCRATCHDIR=${SCRATCHDIR}"
 sbatch --nodes 1 ./job.slurm
