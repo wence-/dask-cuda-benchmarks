@@ -18,4 +18,6 @@ mamba activate dask-cuda
 echo "PATH=${PATH}"
 echo "PROTOCOL=${PROTOCOL}"
 echo "SCRATCHDIR=${SCRATCHDIR}"
-sbatch --nodes 1 ./job.slurm
+export DASK_DISTRIBUTED__COMM__TIMEOUTS__CONNECT=3600s
+export DASK_DISTRIBUTED__COMM__TIMEOUTS__TCP=3600s
+sbatch --nodes 256 ./job.slurm

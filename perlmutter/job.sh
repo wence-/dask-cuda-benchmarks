@@ -2,20 +2,21 @@
 SCHED_FILE=${SCRATCHDIR}/scheduler-${SLURM_JOBID}.json
 
 # Could ask, but easier to hard-code
+# NGPUS=4
 NGPUS=4
 export EXPECTED_NUM_WORKERS=$((SLURM_JOB_NUM_NODES * NGPUS))
 
 export COMMON_ARGS="--protocol ${PROTOCOL} \
        --interface hsn0 \
        --scheduler-file ${SCRATCHDIR}/scheduler-${SLURM_JOBID}.json"
-export PROTOCOL_ARGS="--enable-nvlink --enable-infiniband"
+export PROTOCOL_ARGS=""
 export WORKER_ARGS="--shared-filesystem \
        --local-directory ${SCRATCHDIR}/tmp-${SLURM_JOBID}-${SLURM_PROCID} \
        --multiprocessing-method forkserver"
-
+echo "DASK_COMM_TIMEOUTS=${DASK_DISTRIBUTED__COMM__TIMEOUTS__CONNECT}"
 # Turn off ptxcompiler subprocess call
 export PTXCOMPILER_CHECK_NUMBA_CODEGEN_PATCH_NEEDED=0
-
+export UCX_SOCKADDR_TLS_PRIORITY=rdmacm
 # Warn if fork after init
 # export UCX_IB_FORK_INIT=n
 
@@ -51,6 +52,7 @@ if [[ $(((SLURM_PROCID / SLURM_NTASKS_PER_NODE) * SLURM_NTASKS_PER_NODE)) == ${S
                --benchmark-json ${OUTDIR}/benchmark-data.json \
                ${COMMON_ARGS} \
                ${PROTOCOL_ARGS} \
+	       --backend explicit-comms \
                --multiprocessing-method forkserver > ${OUTDIR}/raw-data.txt \
             || /bin/true        # always exit cleanly
     else
