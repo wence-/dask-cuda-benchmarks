@@ -2,7 +2,7 @@
 #SBATCH --qos=early_science
 #SBATCH --account=dasrepo_g
 #SBATCH --constraint=gpu
-#SBATCH --gpus-per-node=4
+#SBATCH --gpus-per-task=4
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=16
 #SBATCH --time=00:15:00
