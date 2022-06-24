@@ -7,19 +7,10 @@
 #SBATCH --cpus-per-task=16
 #SBATCH --time=00:15:00
 
-module load PrgEnv-nvidia
-module load cudatoolkit
-module load gcc
-
-export PROTOCOL=ucx
-
-export SCRATCH=/pscratch/sd/w/wence
-export OUTDIR=${SCRATCH}/dask-cuda-benchmark/output-${PROTOCOL}-${SLURM_JOB_NUM_NODES}
-export SCRATCHDIR=${SCRATCH}/dask-cuda-benchmark/scratch
-export RUNDIR=/global/common/software/dasrepo/wence/src/dask-cuda-benchmarks/perlmutter/
-
+export OUTDIR=${SCRATCH}/dask-cuda-benchmark/output-${PROTOCOL}-${SLURM_JOB_NUM_NODES}-${SLURM_JOB_ID}
 
 mkdir -p ${OUTDIR}
-mkdir -p ${SCRATCHDIR}
 
 srun job.sh
+
+rsync --delete -rupm ${SCRATCH}/dask-cuda-benchmark/ ${HOME}/benchmark-results/

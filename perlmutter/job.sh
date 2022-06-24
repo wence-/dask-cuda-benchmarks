@@ -1,11 +1,8 @@
 #!/bin/bash
-source /global/common/software/dasrepo/wence/mambaforge/etc/profile.d/conda.sh
-source /global/common/software/dasrepo/wence/mambaforge/etc/profile.d/mamba.sh
-mamba activate dask-cuda
-
 SCHED_FILE=${SCRATCHDIR}/scheduler-${SLURM_JOBID}.json
 
-NGPUS=$(nvidia-smi -L | wc -l)
+# Could ask, but easier to hard-code
+NGPUS=4
 export EXPECTED_NUM_WORKERS=$((SLURM_JOB_NUM_NODES * NGPUS))
 
 export COMMON_ARGS="--protocol ${PROTOCOL} \
