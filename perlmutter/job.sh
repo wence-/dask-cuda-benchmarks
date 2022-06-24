@@ -17,7 +17,7 @@ export WORKER_ARGS="--shared-filesystem \
 export PTXCOMPILER_CHECK_NUMBA_CODEGEN_PATCH_NEEDED=0
 
 # Warn if fork after init
-export UCX_IB_FORK_INIT=n
+# export UCX_IB_FORK_INIT=n
 
 # Submit with --gpus-per-node NGPU --ntasks-per-node 1 --cpus-per-task NGPU (or 2xNGPU)
 
@@ -43,6 +43,7 @@ if [[ $(((SLURM_PROCID / SLURM_NTASKS_PER_NODE) * SLURM_NTASKS_PER_NODE)) == ${S
         # TODO: scaling parameters?
         # TODO: Parameterize sizes
         # TODO: What to run in a single allocation?
+        echo "${SLURM_PROCID} on node ${SLURM_NODEID} starting worker"
         python ${RUNDIR}/local_cudf_merge.py \
                -c 40_000_000 \
                --frac-match 0.6 \
