@@ -10,7 +10,8 @@ export COMMON_ARGS="--protocol ${PROTOCOL} \
        --scheduler-file ${SCRATCHDIR}/scheduler-${SLURM_JOBID}.json"
 export PROTOCOL_ARGS="--enable-nvlink --enable-infiniband"
 export WORKER_ARGS="--shared-filesystem \
-       --local-directory ${SCRATCHDIR}/tmp-${SLURM_JOBID}-${SLURM_PROCID}"
+       --local-directory ${SCRATCHDIR}/tmp-${SLURM_JOBID}-${SLURM_PROCID} \
+       --multiprocessing-method forkserver"
 
 # Warn if fork after init
 export UCX_IB_FORK_INIT=n
@@ -45,7 +46,8 @@ if [[ $(((SLURM_PROCID / SLURM_NTASKS_PER_NODE) * SLURM_NTASKS_PER_NODE)) == ${S
                --runs 10 \
                --benchmark-json ${OUTDIR}/benchmark-data.json \
                ${COMMON_ARGS} \
-               ${PROTOCOL_ARGS} > ${OUTDIR}/raw-data.txt \
+               ${PROTOCOL_ARGS} \
+               --multiprocessing-method forkserver > ${OUTDIR}/raw-data.txt \
             || /bin/true        # always exit cleanly
     else
         echo "${SLURM_PROCID} on node ${SLURM_NODEID} starting worker"
