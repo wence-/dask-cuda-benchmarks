@@ -7,10 +7,10 @@ export EXPECTED_NUM_WORKERS=$((SLURM_JOB_NUM_NODES * NGPUS))
 
 export COMMON_ARGS="--protocol ${PROTOCOL} \
        --interface hsn0 \
-       --shared-filesystem \
-       --local-directory ${SCRATCHDIR}/tmp-${SLURM_JOBID}-${SLURM_PROCID}
        --scheduler-file ${SCRATCHDIR}/scheduler-${SLURM_JOBID}.json"
-export WORKER_ARGS="--enable-nvlink --enable-infiniband"
+export PROTOCOL_ARGS="--enable-nvlink --enable-infiniband"
+export WORKER_ARGS="--shared-filesystem \
+       --local-directory ${SCRATCHDIR}/tmp-${SLURM_JOBID}-${SLURM_PROCID}"
 
 # Warn if fork after init
 export UCX_IB_FORK_INIT=n
@@ -33,6 +33,7 @@ if [[ $(((SLURM_PROCID / SLURM_NTASKS_PER_NODE) * SLURM_NTASKS_PER_NODE)) == ${S
         python -m dask_cuda.cli.dask_cuda_worker \
                --no-dashboard \
                ${COMMON_ARGS} \
+               ${PROTOCOL_ARGS} \
                ${WORKER_ARGS} &
         # TODO: Better json data naming
         # TODO: scaling parameters?
@@ -44,7 +45,7 @@ if [[ $(((SLURM_PROCID / SLURM_NTASKS_PER_NODE) * SLURM_NTASKS_PER_NODE)) == ${S
                --runs 10 \
                --benchmark-json ${OUTDIR}/benchmark-data.json \
                ${COMMON_ARGS} \
-               ${WORKER_ARGS} > ${OUTPUT}/raw-data.txt \
+               ${PROTOCOL_ARGS} > ${OUTDIR}/raw-data.txt \
             || /bin/true        # always exit cleanly
     else
         echo "${SLURM_PROCID} on node ${SLURM_NODEID} starting worker"
@@ -52,6 +53,7 @@ if [[ $(((SLURM_PROCID / SLURM_NTASKS_PER_NODE) * SLURM_NTASKS_PER_NODE)) == ${S
         python -m dask_cuda.cli.dask_cuda_worker \
                --no-dashboard \
                ${COMMON_ARGS} \
+               ${PROTOCOL_ARGS} \
                ${WORKER_ARGS} \
             || /bin/true        # always exit cleanly
     fi
