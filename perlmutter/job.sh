@@ -8,7 +8,15 @@ SCHED_FILE=${SCRATCHDIR}/scheduler-${SLURM_JOBID}.json
 NGPUS=$(nvidia-smi -L | wc -l)
 export EXPECTED_NUM_WORKERS=$((SLURM_JOB_NUM_NODES * NGPUS))
 
-export WORKER_ARGS="--protocol ucx --enable-nvlink --enable-infiniband"
+export COMMON_ARGS="--protocol ${PROTOCOL} \
+       --interface hsn0 \
+       --shared-filesystem \
+       --local-directory ${SCRATCHDIR}/tmp-${SLURM_JOBID}-${SLURM_PROCID}
+       --scheduler-file ${SCRATCHDIR}/scheduler-${SLURM_JOBID}.json"
+export WORKER_ARGS="--enable-nvlink --enable-infiniband"
+
+# Warn if fork after init
+export UCX_IB_FORK_INIT=n
 
 # Submit with --gpus-per-node NGPU --ntasks-per-node 1 --cpus-per-task NGPU (or 2xNGPU)
 
@@ -23,13 +31,12 @@ if [[ $(((SLURM_PROCID / SLURM_NTASKS_PER_NODE) * SLURM_NTASKS_PER_NODE)) == ${S
         echo "${SLURM_PROCID} on node ${SLURM_NODEID} starting scheduler/client"
         python -m distributed.cli.dask_scheduler \
                --no-dashboard \
-               --protocol ucx \
-               --scheduler-file ${SCHED_FILE} &
+               ${COMMON_ARGS} &
         sleep 6
         python -m dask_cuda.cli.dask_cuda_worker \
                --no-dashboard \
-               ${WORKER_ARGS} \
-               --scheduler-file ${SCHED_FILE} &
+               ${COMMON_ARGS} \
+               ${WORKER_ARGS} &
         # TODO: Better json data naming
         # TODO: scaling parameters?
         # TODO: Parameterize sizes
@@ -38,17 +45,18 @@ if [[ $(((SLURM_PROCID / SLURM_NTASKS_PER_NODE) * SLURM_NTASKS_PER_NODE)) == ${S
                -c 40_000_000 \
                --frac-match 0.6 \
                --runs 10 \
-               --benchmark-json ${OUTDIR}/run.json \
-               --scheduler-file ${SCHED_FILE} \
-               # ignored, but for correct data in output files
-               ${WORKER_ARGS} > ${JOB_OUTPUT_DIR}/raw-data.txt
+               --benchmark-json ${OUTDIR}/benchmark-data.json \
+               ${COMMON_ARGS} \
+               ${WORKER_ARGS} > ${OUTPUT}/raw-data.txt \
+            || /bin/true        # always exit cleanly
     else
         echo "${SLURM_PROCID} on node ${SLURM_NODEID} starting worker"
         sleep 6
         python -m dask_cuda.cli.dask_cuda_worker \
                --no-dashboard \
+               ${COMMON_ARGS} \
                ${WORKER_ARGS} \
-               --scheduler-file ${SCHED_FILE}
+            || /bin/true        # always exit cleanly
     fi
 else
     echo "${SLURM_PROCID} on node ${SLURM_NODEID} sitting in background"
