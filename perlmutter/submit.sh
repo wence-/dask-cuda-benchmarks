@@ -14,3 +14,5 @@ mkdir -p ${SCRATCHDIR}
 source /global/common/software/dasrepo/wence/mambaforge/etc/profile.d/conda.sh
 source /global/common/software/dasrepo/wence/mambaforge/etc/profile.d/mamba.sh
 mamba activate dask-cuda
+
+sbatch --nodes 1 ./job.slurm
