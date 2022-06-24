@@ -7,7 +7,7 @@
 #SBATCH --cpus-per-task=16
 #SBATCH --time=00:15:00
 
-export OUTDIR=${SCRATCH}/dask-cuda-benchmark/output-${PROTOCOL}-${SLURM_JOB_NUM_NODES}-${SLURM_JOB_ID}
+export OUTDIR=${SCRATCH}/dask-cuda-benchmark/output-${PROTOCOL}-nodes-${SLURM_JOB_NUM_NODES}-${SLURM_JOB_ID}
 
 mkdir -p ${OUTDIR}
 
