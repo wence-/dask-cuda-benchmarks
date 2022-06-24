@@ -13,6 +13,9 @@ export WORKER_ARGS="--shared-filesystem \
        --local-directory ${SCRATCHDIR}/tmp-${SLURM_JOBID}-${SLURM_PROCID} \
        --multiprocessing-method forkserver"
 
+# Turn off ptxcompiler subprocess call
+export PTXCOMPILER_CHECK_NUMBA_CODEGEN_PATCH_NEEDED=0
+
 # Warn if fork after init
 export UCX_IB_FORK_INIT=n
 

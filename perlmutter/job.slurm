@@ -13,4 +13,4 @@ mkdir -p ${OUTDIR}
 
 srun job.sh
 
-rsync --delete -rupm ${SCRATCH}/dask-cuda-benchmark/ ${HOME}/benchmark-results/
+rsync --delete -rupm ${SCRATCH}/dask-cuda-benchmark/ ${HOME}/benchmark-results/ --filter '- scratch/'
