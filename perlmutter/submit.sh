@@ -20,4 +20,4 @@ echo "PROTOCOL=${PROTOCOL}"
 echo "SCRATCHDIR=${SCRATCHDIR}"
 export DASK_DISTRIBUTED__COMM__TIMEOUTS__CONNECT=3600s
 export DASK_DISTRIBUTED__COMM__TIMEOUTS__TCP=3600s
-sbatch --nodes 256 ./job.slurm
+sbatch --nodes 128 ./job.slurm
