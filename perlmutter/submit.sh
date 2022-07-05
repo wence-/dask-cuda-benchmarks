@@ -20,4 +20,10 @@ echo "PROTOCOL=${PROTOCOL}"
 echo "SCRATCHDIR=${SCRATCHDIR}"
 export DASK_DISTRIBUTED__COMM__TIMEOUTS__CONNECT=3600s
 export DASK_DISTRIBUTED__COMM__TIMEOUTS__TCP=3600s
-sbatch --nodes 128 ./job.slurm
+export NUM_NODES=1
+export JOB_NAME=cudf-merge
+sbatch --nodes ${NUM_NODES} \
+       --job-name ${JOB_NAME} \
+       -e slurm-%x-%j.err \
+       -o slurm-%x-%j.out \
+       ./job.slurm

@@ -46,7 +46,6 @@ if [[ $(((SLURM_PROCID / SLURM_NTASKS_PER_NODE) * SLURM_NTASKS_PER_NODE)) == ${S
         # TODO: What to run in a single allocation?
         echo "${SLURM_PROCID} on node ${SLURM_NODEID} starting worker"
 	# Need to adapt the tidy data creation
-	# --benchmark-json ${OUTDIR}/benchmark-data.json
         python ${RUNDIR}/local_cudf_merge.py \
                -c 40_000_000 \
                --frac-match 0.6 \
@@ -54,6 +53,8 @@ if [[ $(((SLURM_PROCID / SLURM_NTASKS_PER_NODE) * SLURM_NTASKS_PER_NODE)) == ${S
                ${COMMON_ARGS} \
                ${PROTOCOL_ARGS} \
 	       --backend dask \
+               --shutdown-external-cluster-on-exit \
+               --output-basename ${OUTDIR}/benchmark-data \
                --multiprocessing-method forkserver > ${OUTDIR}/raw-data.txt \
             || /bin/true        # always exit cleanly
     else
