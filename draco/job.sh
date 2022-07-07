@@ -21,6 +21,12 @@ export UCX_SOCKADDR_TLS_PRIORITY=rdmacm
 
 # Submit with --gpus-per-node NGPU --ntasks-per-node 1 --cpus-per-task NGPU (or 2xNGPU)
 
+DATE=$(date +%Y%m%d)
+NUM_WORKERS=$(printf "%03d" ${EXPECTED_NUM_WORKERS})
+UCX_VERSION=$(ucx_info -v | awk '/version=/ {print substr($3, 9)}')
+OUTPUT_DIR=${OUTDIR}/${DATE}/ucx-${UCX_VERSION}
+
+mkdir -p $OUTPUT_DIR
 # Idea: we allocate ntasks-per-node for workers, but those are started in the
 # background by dask-cuda-worker.
 # So we need to pick one process per node to run the worker commands.
@@ -39,17 +45,39 @@ if [[ $(((SLURM_PROCID / SLURM_NTASKS_PER_NODE) * SLURM_NTASKS_PER_NODE)) == ${S
                ${COMMON_ARGS} \
                ${PROTOCOL_ARGS} \
                ${WORKER_ARGS} &
+        # Weak scaling
         python ${RUNDIR}/local_cudf_merge.py \
                -c 40_000_000 \
                --frac-match 0.6 \
-               --runs 10 \
+               --runs 30 \
                ${COMMON_ARGS} \
                ${PROTOCOL_ARGS} \
 	       --backend dask \
-               --shutdown-external-cluster-on-exit \
-               --output-basename ${OUTDIR}/benchmark-data \
+               --output-basename ${OUTPUT_DIR}/nnodes-${NUM_WORKERS}-cudf-merge-dask \
                --multiprocessing-method forkserver \
             || /bin/true        # always exit cleanly
+
+        python ${RUNDIR}/local_cudf_merge.py \
+               -c 40_000_000 \
+               --frac-match 0.6 \
+               --runs 30 \
+               ${COMMON_ARGS} \
+               ${PROTOCOL_ARGS} \
+	       --backend explicit-comms \
+               --output-basename ${OUTPUT_DIR}/nnodes-${NUM_WORKERS}-cudf-merge-explicit-comms \
+               --multiprocessing-method forkserver \
+            || /bin/true        # always exit cleanly
+
+        python ${RUNDIR}/local_cupy.py \
+               -o transpose_sum \
+               -s 50000 \
+               -c 2500 \
+               --runs 30 \
+               ${COMMON_ARGS} \
+               ${PROTOCOL_ARGS} \
+               --output-basename ${OUTPUT_DIR}/nnodes-${NUM_WORKERS}-transpose-sum \
+               --multiprocessing-method forkserver \
+            || /bin/true
     else
         echo "${SLURM_PROCID} on node ${SLURM_NODEID} starting worker"
         sleep 6

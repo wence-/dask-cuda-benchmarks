@@ -21,7 +21,7 @@ export SCRATCHDIR=/root/scratchdir
 
 export JOB_SCRIPT=${RUNDIR}/job.sh
 
-export CONTAINER=$(readlink -f ~/workdir/ucx-py-new.sqsh)
+export CONTAINER=$(readlink -f ~/workdir/dask-cuda-ucx-1.12.x)
 
 srun --container-image=${CONTAINER} --no-container-mount-home \
      --container-mounts=${RUNDIR_HOST}:${RUNDIR}:ro,${OUTDIR_HOST}:${OUTDIR}:rw,${SCRATCHDIR_HOST}:${SCRATCHDIR}:rw \

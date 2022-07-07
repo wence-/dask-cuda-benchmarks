@@ -9,6 +9,7 @@ dependencies:
   - dask
   - distributed
   - cudf
+  - dask-cudf
   - cupy
   - rmm
   - dask-cuda
