@@ -1,0 +1,25 @@
+#+TITLE: draco regular benchmarking
+
+* How to build environment?
+
+Since batch system may not schedule the job for a while, need to
+select exact commits for all components that we care about (and
+track).
+
+If we do this on docker images that means building the images
+elsewhere and then running in those images on draco.
+
+Could also build inside the base image and save a new squash
+filesystem before launching the runs (might be preferable?)
+
+What do we care about exact commits of?
+
+- [ ] UCX
+- [ ] UCX-Py
+- [ ] Dask-CUDA
+
+What do we want to know the version of (entire environment probably,
+via conda?)
+
+- Build UCX-Py rdma docker file
+- Install dask-cuda, cudf (can do this with appropriate environment file?)

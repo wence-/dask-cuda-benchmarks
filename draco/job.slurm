@@ -5,6 +5,9 @@
 #SBATCH --gpus-per-node 8
 #SBATCH --ntasks-per-node 1
 #SBATCH --cpus-per-task 16
+#SBATCH -e slurm-%x-%j.err
+#SBATCH -e slurm-%x-%j.out
+#SBATCH --job-name cudf-merge
 
 export RUNDIR_HOST=$(readlink -f `pwd`)
 export OUTDIR_HOST=$(readlink -f `pwd`/outputs)

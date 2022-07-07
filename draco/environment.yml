@@ -1,0 +1,23 @@
+channels:
+  - rapidsai-nightly
+  - dask/label/dev
+  - nvidia
+  - numba
+  - conda-forge
+
+dependencies:
+  - dask
+  - distributed
+  - cudf
+  - cupy
+  - rmm
+  - dask-cuda
+  - pynvml>=11.0.0
+  - numba>=0.46
+  - cudatoolkit=11.5
+  - python=3.8
+  - setuptools
+  - psutil
+  - cython>=0.29.14,<3.0.0a0
+  - pytest
+  - pytest-asyncio
