@@ -35,6 +35,9 @@ mkdir -p $OUTPUT_DIR
 if [[ $(((SLURM_PROCID / SLURM_NTASKS_PER_NODE) * SLURM_NTASKS_PER_NODE)) == ${SLURM_PROCID} ]]; then
     # rank zero starts scheduler and client as well
     if [[ $SLURM_NODEID == 0 ]]; then
+        echo "Environment status"
+        python get-versions.py ${OUTPUT_DIR}/version-info.json
+        mamba list --json > ${OUTPUT_DIR}/environment-info.json
         echo "${SLURM_PROCID} on node ${SLURM_NODEID} starting scheduler/client"
         python -m distributed.cli.dask_scheduler \
                --no-dashboard \
