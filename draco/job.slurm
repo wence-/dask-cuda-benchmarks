@@ -6,12 +6,13 @@
 #SBATCH --ntasks-per-node 1
 #SBATCH --cpus-per-task 16
 #SBATCH -e slurm-%x-%j.err
-#SBATCH -e slurm-%x-%j.out
+#SBATCH -o slurm-%x-%j.out
 #SBATCH --job-name dask-cuda-bench
 
-export RUNDIR_HOST=$(readlink -f `pwd`)
-export OUTDIR_HOST=$(readlink -f `pwd`/outputs)
-export SCRATCHDIR_HOST=$(readlink -f `pwd`/scratch)
+export RUNDIR_HOST=$(readlink -f $(pwd))
+export OUTDIR_HOST=$(readlink -f $(pwd)/outputs/$(date +%Y%m%d))
+export SCRATCHDIR_HOST=$(readlink -f $(pwd)/scratch)
+
 mkdir -p ${OUTDIR_HOST}
 mkdir -p ${SCRATCHDIR_HOST}
 

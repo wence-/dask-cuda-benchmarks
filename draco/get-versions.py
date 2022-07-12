@@ -27,14 +27,14 @@ def get_versions():
         "ucx": ucx_revision,
         "dask": dask.__version__,
         "distributed": distributed.__version__,
-        "dask_cuda": dask_cuda.__version,
+        "dask_cuda": dask_cuda.__version__,
         "cudf": cudf.__version__,
     }
 
 
 @click.command()
 @click.argument(
-    "output_file", type=str, required=True, help="Output file name for version data"
+    "output_file", type=str
 )
 def main(output_file):
     with open(output_file, "w") as f:

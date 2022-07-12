@@ -8,9 +8,10 @@ SCHED_FILE=${SCRATCHDIR}/scheduler-${SLURM_JOBID}.json
 NGPUS=$(nvidia-smi -L | wc -l)
 export EXPECTED_NUM_WORKERS=$((SLURM_JOB_NUM_NODES * NGPUS))
 
+export PROTOCOL=ucx
 # FIXME is the interface correct?
 export COMMON_ARGS="--protocol ${PROTOCOL} \
-       --interface ib0 \
+       --interface ibs1 \
        --scheduler-file ${SCRATCHDIR}/scheduler-${SLURM_JOBID}.json"
 export PROTOCOL_ARGS=""
 export WORKER_ARGS="--local-directory /tmp/dask-${SLURM_PROCID} \
@@ -21,12 +22,10 @@ export UCX_SOCKADDR_TLS_PRIORITY=rdmacm
 
 # Submit with --gpus-per-node NGPU --ntasks-per-node 1 --cpus-per-task NGPU (or 2xNGPU)
 
-DATE=$(date +%Y%m%d)
 NUM_WORKERS=$(printf "%03d" ${EXPECTED_NUM_WORKERS})
 UCX_VERSION=$(ucx_info -v | awk '/version=/ {print substr($3, 9)}')
-OUTPUT_DIR=${OUTDIR}/${DATE}/ucx-${UCX_VERSION}
+OUTPUT_DIR=${OUTDIR}/ucx-${UCX_VERSION}
 
-mkdir -p $OUTPUT_DIR
 # Idea: we allocate ntasks-per-node for workers, but those are started in the
 # background by dask-cuda-worker.
 # So we need to pick one process per node to run the worker commands.
@@ -36,6 +35,7 @@ if [[ $(((SLURM_PROCID / SLURM_NTASKS_PER_NODE) * SLURM_NTASKS_PER_NODE)) == ${S
     # rank zero starts scheduler and client as well
     if [[ $SLURM_NODEID == 0 ]]; then
         echo "Environment status"
+        mkdir -p $OUTPUT_DIR
         python ${RUNDIR}/get-versions.py ${OUTPUT_DIR}/version-info.json
         mamba list --json > ${OUTPUT_DIR}/environment-info.json
         echo "${SLURM_PROCID} on node ${SLURM_NODEID} starting scheduler/client"
@@ -49,35 +49,42 @@ if [[ $(((SLURM_PROCID / SLURM_NTASKS_PER_NODE) * SLURM_NTASKS_PER_NODE)) == ${S
                ${PROTOCOL_ARGS} \
                ${WORKER_ARGS} &
         # Weak scaling
+        # Only the first run initializes the RMM pool, which is then set up on
+        # workers. After that the clients connect to workers with a pool already
+        # in place, so we pass --disable-rmm-pool
         python ${RUNDIR}/local_cudf_merge.py \
                -c 40_000_000 \
                --frac-match 0.6 \
                --runs 30 \
                ${COMMON_ARGS} \
                ${PROTOCOL_ARGS} \
-	       --backend dask \
+	        --backend dask \
                --output-basename ${OUTPUT_DIR}/nnodes-${NUM_WORKERS}-cudf-merge-dask \
                --multiprocessing-method forkserver \
             || /bin/true        # always exit cleanly
-
+        python ${RUNDIR}/gc-workers.py ${SCHED_FILE} || /bin/true
         python ${RUNDIR}/local_cudf_merge.py \
                -c 40_000_000 \
                --frac-match 0.6 \
                --runs 30 \
                ${COMMON_ARGS} \
                ${PROTOCOL_ARGS} \
-	       --backend explicit-comms \
+               --disable-rmm-pool \
+	        --backend explicit-comms \
                --output-basename ${OUTPUT_DIR}/nnodes-${NUM_WORKERS}-cudf-merge-explicit-comms \
                --multiprocessing-method forkserver \
             || /bin/true        # always exit cleanly
+        python ${RUNDIR}/gc-workers.py ${SCHED_FILE} || /bin/true
 
         python ${RUNDIR}/local_cupy.py \
                -o transpose_sum \
                -s 50000 \
                -c 2500 \
                --runs 30 \
+               --disable-rmm-pool \
                ${COMMON_ARGS} \
                ${PROTOCOL_ARGS} \
+               --shutdown-external-cluster-on-exit \
                --output-basename ${OUTPUT_DIR}/nnodes-${NUM_WORKERS}-transpose-sum \
                --multiprocessing-method forkserver \
             || /bin/true
